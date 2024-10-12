@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
   cmake \
   gcc-arm-none-eabi \
   libpcl-dev \
+  libgtest-dev \
+  libomp-dev \
   gdb && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
