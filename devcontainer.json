@@ -1,0 +1,17 @@
+{
+    "name": "C++ Dev. Container Reference" ,
+    "image": "mdnf1992/cpp-dev",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "ms-vscode.cpptools-extension-pack",
+                "cschlosser.doxdocgen"
+            ],
+            "settings": {
+				"C_Cpp.intelliSenseEngine": "disabled",
+				"clangd.arguments": ["-header-insertion=never"]
+			}
+        }
+    }
+}
