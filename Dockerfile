@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
   libpcl-dev \
   libgtest-dev \
   libomp-dev \
+  libi2c-dev \
   gdb && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
