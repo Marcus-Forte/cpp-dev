@@ -14,11 +14,4 @@ use this in your `devcontainer.json`:
 ```
 
 ## Cross-compiling to arm uC.
-Add this lines to top-level CMakeLists.txt before `project()`
-```
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_VERSION 1)
-set(CMAKE_SYSTEM_PROCESSOR arm)
-set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-set(ARM_OBJCOPY arm-none-eabi-objcopy)
-```
+Use `cmake -DCMAKE_TOOLCHAIN_FILE=/opt/toolchains/arm-toolchain.cmake ...`

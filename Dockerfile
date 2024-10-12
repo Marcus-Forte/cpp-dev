@@ -25,3 +25,5 @@ RUN cd /tmp && git clone --recurse-submodules -b v1.66.0 --depth 1 --shallow-sub
   cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF .. && \
   make -j8 install && \
   rm -rf /tmp/grpc
+
+COPY toolchains/ /opt/toolchains
