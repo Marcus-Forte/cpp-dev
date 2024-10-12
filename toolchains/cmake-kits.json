@@ -1,0 +1,10 @@
+[
+    {
+        "name": "arm",
+        "toolchainFile": "/opt/toolchains/arm-toolchain.cmake"
+    },
+    {
+        "name": "arm64",
+        "toolchainFile": "/opt/toolchains/arm64-toolchain.cmake"
+    }
+]

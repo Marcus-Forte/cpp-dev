@@ -10,7 +10,8 @@
             ],
             "settings": {
 				"C_Cpp.intelliSenseEngine": "disabled",
-				"clangd.arguments": ["-header-insertion=never"]
+				"clangd.arguments": ["-header-insertion=never"],
+                "cmake.additionalKits": ["/opt/toolchains/cmake-kits.json"]
 			}
         }
     }

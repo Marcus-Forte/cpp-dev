@@ -1,17 +1,17 @@
 # Generic C++ Development Container.
 
-## Components:
+See example `devcontainer.json` for usage.
+
+## Components
 
 - GTEST
 - GDB
 - ARM and X64 GCC
 - PCL library
 - clang-format, clang-tidy
+- gRPC
 
-use this in your `devcontainer.json`:
-```
-"image": "mdnf1992/cpp-dev"
-```
+## Cross-compiling
 
-## Cross-compiling to arm uC.
-Use `cmake -DCMAKE_TOOLCHAIN_FILE=/opt/toolchains/arm-toolchain.cmake ...`
+Use provided cmake kits located at  `/opt/toolchains/cmake-kits.json` to cross-compile.
+Add it to cmake extension: `"cmake.additionalKits": ["/opt/toolchains/cmake-kits.json"]`.
