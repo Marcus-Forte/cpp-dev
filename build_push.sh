@@ -18,7 +18,7 @@ while getopts $OPTSTRING opt; do
     esac
 done
 
-docker build -t $DEVCONTAINER_NAME:$TAG .
+docker build --platform=linux/arm64,linux/amd64 -t $DEVCONTAINER_NAME:$TAG .
 
 if $PUSH; then
 docker push $DEVCONTAINER_NAME:$TAG
