@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
   g++-13-aarch64-linux-gnu \
   libpcl-dev \
   libgtest-dev \
+  libgmock-dev \
   libomp-dev \
   libi2c-dev \
   gdb && \
