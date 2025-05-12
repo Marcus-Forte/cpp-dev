@@ -2,12 +2,16 @@
 
 See example `devcontainer.json` for usage.
 
+## Build & Push
+
+- `./docker_push.sh -p`
+
 ## Components
 
-- GTEST
+- GTEST, GMOCK
 - GDB
 - ARM and X64 GCC
-- PCL library
+- PCL library (native only) - TODO crosscompiled?
 - clang-format, clang-tidy
 - gRPC
 
