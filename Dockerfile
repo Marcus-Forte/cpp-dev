@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:noble
 
 # Common C++ dev tools
 RUN apt-get update && apt-get install -y \
@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
   libgmock-dev \
   libboost-all-dev \
   libi2c-dev \
+  python3-venv \
   gdb && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
