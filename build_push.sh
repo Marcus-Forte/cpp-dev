@@ -20,11 +20,9 @@ build_pi5() {
     local TAG="${IMAGE_NAME}:pi5"
     echo "--- Building for Raspberry Pi 5 ($TAG) ---"
     
-    # We build a linux/arm64 image. 
-    # We use the native compilers (g++, gcc) because the container itself is ARM64.
     docker build \
         --platform linux/arm64 \
-        --build-arg TARGET_CXX_FLAGS="-mcpu=cortex-a76 -O3 -DNDEBUG" \
+        --build-arg TOOLCHAIN_FILE=/opt/toolchains/pi5.cmake \
         -t "$TAG" .
 
     if [ "$PUSH" = true ]; then docker push "$TAG"; fi
@@ -38,20 +36,20 @@ build_pizero2() {
 
     docker build \
         --platform linux/arm64 \
-        --build-arg TARGET_CXX_FLAGS="-mcpu=cortex-a53 -mtune=cortex-a53 -O3 -DNDEBUG" \
+        --build-arg TOOLCHAIN_FILE=/opt/toolchains/pizero2.cmake \
         -t "$TAG" .
 
     if [ "$PUSH" = true ]; then docker push "$TAG"; fi
 }
 
 # Function to build for the current host (likely x86/amd64)
-# Good for testing logic on your laptop before deploying to Pi
 build_native() {
     local TAG="${IMAGE_NAME}:latest"
     echo "--- Building Native/Host Version ($TAG) ---"
 
     docker build \
-        --build-arg TARGET_CXX_FLAGS="-march=native -O3" \
+        --build-arg TOOLCHAIN_FILE=/opt/toolchains/native.cmake  \
+        --build-arg SKIP_TARGET_BUILD=true \
         -t "$TAG" .
 
     if [ "$PUSH" = true ]; then docker push "$TAG"; fi

@@ -1,6 +1,6 @@
 {
     "name": "C++ Dev. Container Reference" ,
-    "image": "mdnf1992/cpp-dev",
+    "image": "mdnf1992/cpp-dev:native",
     "customizations": {
         "vscode": {
             "extensions": [

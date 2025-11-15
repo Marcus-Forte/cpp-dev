@@ -1,4 +1,6 @@
-# Toolchain for arm microcontrollers.
+# Toolchain for arm microcontrollers (ARM Cortex-M / bare-metal).
+# This toolchain config uses the `arm-none-eabi-*` cross-compilers
+# and is intended for microcontroller builds (not Raspberry Pi).
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)
@@ -11,5 +13,4 @@ set(ARM_OBJCOPY arm-none-eabi-objcopy)
 
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

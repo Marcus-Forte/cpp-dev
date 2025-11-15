@@ -1,8 +1,7 @@
-FROM gcc:15.2.0-trixie
+FROM gcc:14-trixie
 
-# 1. Define Build Arguments with defaults for your "Standard" ARM target
-# You can override this at build time (e.g., for native builds)
-ARG TARGET_CXX_FLAGS="-O3"
+ARG TOOLCHAIN_FILE=/opt/toolchains/native.cmake
+ARG SKIP_TARGET_BUILD=false
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG BUILD_WORKERS=6
@@ -31,17 +30,15 @@ RUN apt-get update && apt-get install -y \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
-# Automatic Docker Argument to detect host architecture
-ARG TARGETARCH
+COPY toolchains/ /opt/toolchains
 
 # PCL
-# This builds PCL specifically for the TARGET architecture defined by the ARGs.
 RUN cd /tmp && git clone -b pcl-1.15.1 https://github.com/PointCloudLibrary/pcl.git && \
   mkdir -p /tmp/pcl/build && cd /tmp/pcl/build && \
   cmake \
+    -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
     -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS="${TARGET_CXX_FLAGS}" \
     -DWITH_OPENGL=OFF -DWITH_VTK=OFF \ 
     -DBUILD_keypoints=OFF -DBUILD_segmentation=OFF -DBUILD_surface=OFF \ 
     -DBUILD_visualization=oFF -DBUILD_recognition=OFF -DBUILD_ml=off \ 
@@ -50,21 +47,30 @@ RUN cd /tmp && git clone -b pcl-1.15.1 https://github.com/PointCloudLibrary/pcl.
   rm -rf /tmp/pcl
 
 # gRPC
-# 1. First, we always build the HOST version (native to the container)
-#    This is required because gRPC needs native plugins (grpc_cpp_plugin) to build the target version.
+# Build a native (host) gRPC first to produce grpc_cpp_plugin, then
+# perform the cross/target build using the configured toolchain file.
+# TODO if native build, no need to re-build for target
 RUN cd /tmp && git clone --recurse-submodules -b v1.72.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc && \
   mkdir -p /tmp/grpc/build_host && cd /tmp/grpc/build_host && \
-  cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release .. && \
-  make -j${BUILD_WORKERS} install && \
-  # 2. Clean up and build for the TARGET (using the ARGs)
-  rm -rf * && \
   cmake \
     -DgRPC_INSTALL=ON \
     -DgRPC_BUILD_TESTS=OFF \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS="${TARGET_CXX_FLAGS}" \
-    -DCMAKE_SYSTEM_NAME=Linux .. && \
+    -DCMAKE_BUILD_TYPE=Release .. && \
   make -j${BUILD_WORKERS} install && \
-  rm -rf /tmp/grpc
-
-COPY toolchains/ /opt/toolchains
+  # If SKIP_TARGET_BUILD is true we are doing a native build and can stop here.
+  if [ "${SKIP_TARGET_BUILD}" = "true" ]; then \
+    rm -rf /tmp/grpc && ldconfig; \
+  else \
+    # now build for the target (using the toolchain file). The host-installed
+    # grpc_cpp_plugin will be found in PATH and used to generate protobuf/grpc sources
+    rm -rf /tmp/grpc/build_host && \
+    mkdir -p /tmp/grpc/build && cd /tmp/grpc/build && \
+    cmake \
+      -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
+      -DgRPC_INSTALL=ON \
+      -DCMAKE_SYSTEM_NAME=Linux \
+      -DgRPC_BUILD_TESTS=OFF \
+      -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j${BUILD_WORKERS} install && \
+    rm -rf /tmp/grpc && ldconfig; \
+  fi
