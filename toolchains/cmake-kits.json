@@ -1,22 +1,12 @@
 [
     {
-        "name": "arm",
+        "name": "Arm",
         "description": "Builds arm microcontroller",
         "toolchainFile": "/opt/toolchains/arm-toolchain.cmake"
     },
     {
-        "name": "ARM64 Generic",
-        "description": "Portable Armv8-A build (-march=armv8-a -mtune=cortex-a55)",
-        "toolchainFile": "/opt/toolchains/arm64-generic.cmake"
-    },
-    {
-        "name": "Raspberry Pi 5 (Native ARM)",
-        "description": "Builds for Pi 5 (-mcpu=cortex-a76). Requires building on an ARM host.",
-        "toolchainFile": "/opt/toolchains/pi5.cmake"
-    },
-    {
-        "name": "Raspberry Pi Zero 2 (Native ARM)",
-        "description": "Builds for Pi Zero 2 (-mcpu=cortex-a53). Requires building on an ARM host.",
-        "toolchainFile": "/opt/toolchains/pizero2.cmake"
+        "name": "Generic Native",
+        "description": "Generic native build for host system",
+        "toolchainFile": "/opt/toolchains/native.cmake"
     }
 ]
