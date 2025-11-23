@@ -57,8 +57,7 @@ build_arm64_generic() {
         BUILD_CMD="$BUILD_CMD --platform $PLAT"
     fi
     $BUILD_CMD \
-        --build-arg TOOLCHAIN_FILE=/opt/toolchains/arm64-generic.cmake  \
-        --build-arg SKIP_TARGET_BUILD=true \
+        --build-arg TOOLCHAIN_FILE=/opt/toolchains/arm64-generic.cmake \
         -t "$TAG" .
 
     if [ "$PUSH" = true ]; then docker push "$TAG"; fi

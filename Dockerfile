@@ -1,8 +1,7 @@
-# Use arm64 
 FROM debian:trixie-slim
 
 ARG TOOLCHAIN_FILE=/opt/toolchains/arm64-generic.cmake
-ARG SKIP_TARGET_BUILD=false
+ARG TARGETPLATFORM
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG BUILD_WORKERS=6
@@ -20,7 +19,7 @@ RUN dpkg --add-architecture arm64 && apt-get update && apt-get install -y \
   libeigen3-dev \
   cmake \
   gcc-arm-none-eabi \
-  libflann-dev \
+  # libflann-dev \
   libjsoncpp-dev \
   libgtest-dev \
   libgmock-dev \
@@ -31,7 +30,9 @@ RUN dpkg --add-architecture arm64 && apt-get update && apt-get install -y \
   gdb \
   # ARM64
   crossbuild-essential-arm64 \
-  libboost-iostreams-dev:arm64 && \
+  libboost-iostreams-dev:arm64 \
+  libi2c-dev:arm64 && \
+  # libflann-dev:arm64 && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
@@ -61,8 +62,9 @@ RUN cd /tmp && git clone --recurse-submodules -b v1.72.0 --depth 1 --shallow-sub
     -DgRPC_BUILD_TESTS=OFF \
     -DCMAKE_BUILD_TYPE=Release .. && \
   make -j${BUILD_WORKERS} install && \
-  # If SKIP_TARGET_BUILD is true we are doing a native build and can stop here.
-  if [ "${SKIP_TARGET_BUILD}" = "true" ]; then \
+  # If the build already targets linux/arm64, the host binary equals the
+  # target binary so we can stop after installing the native plugin.
+  if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
     rm -rf /tmp/grpc && ldconfig; \
   else \
     # now build for the target (using the toolchain file). The host-installed
