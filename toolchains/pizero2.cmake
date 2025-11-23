@@ -5,8 +5,8 @@
 set(CMAKE_SYSTEM_NAME Linux)
 
 # Set the compilers (native ARM compilers)
-set(CMAKE_C_COMPILER   gcc)
-set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_C_COMPILER   aarch64-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
 
 # Set the architecture-specific flags.
 set(CMAKE_C_FLAGS_INIT   "-mcpu=cortex-a53 -mtune=cortex-a53" CACHE STRING "Initial C flags for Pi Zero 2")

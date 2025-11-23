@@ -5,9 +5,9 @@
         "toolchainFile": "/opt/toolchains/arm-toolchain.cmake"
     },
     {
-        "name": "Native (Host Build)",
-        "description": "Builds for the host architecture (e.g., amd64) with -march=native",
-        "toolchainFile": "/opt/toolchains/native.cmake"
+        "name": "ARM64 Generic",
+        "description": "Portable Armv8-A build (-march=armv8-a -mtune=cortex-a55)",
+        "toolchainFile": "/opt/toolchains/arm64-generic.cmake"
     },
     {
         "name": "Raspberry Pi 5 (Native ARM)",

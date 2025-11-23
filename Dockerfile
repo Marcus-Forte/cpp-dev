@@ -1,16 +1,18 @@
-FROM gcc:14-trixie
+# Use arm64 
+FROM debian:trixie-slim
 
-ARG TOOLCHAIN_FILE=/opt/toolchains/native.cmake
+ARG TOOLCHAIN_FILE=/opt/toolchains/arm64-generic.cmake
 ARG SKIP_TARGET_BUILD=false
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG BUILD_WORKERS=6
 
-# Fix gfortran link in the base image
-RUN ln -s /usr/bin/gfortran-14 /usr/bin/gfortran
+ENV PIP_ROOT_USER_ACTION=ignore
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # Common C++ dev tools
-RUN apt-get update && apt-get install -y \
+RUN dpkg --add-architecture arm64 && apt-get update && apt-get install -y \
+  build-essential \
   clangd \
   clang-format \
   clang-tidy \
@@ -20,29 +22,31 @@ RUN apt-get update && apt-get install -y \
   gcc-arm-none-eabi \
   libflann-dev \
   libjsoncpp-dev \
-  libomp-dev \
   libgtest-dev \
   libgmock-dev \
-  libboost-all-dev \
+  libboost-dev \
+  libboost-iostreams-dev \
   libi2c-dev \
-  python3-venv \
-  gdb && \
+  python3 \
+  gdb \
+  # ARM64
+  crossbuild-essential-arm64 \
+  libboost-iostreams-dev:arm64 && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
 COPY toolchains/ /opt/toolchains
 
-# PCL
+# PCL (Point Cloud Library)
 RUN cd /tmp && git clone -b pcl-1.15.1 https://github.com/PointCloudLibrary/pcl.git && \
   mkdir -p /tmp/pcl/build && cd /tmp/pcl/build && \
   cmake \
     -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
-    -DCMAKE_SYSTEM_NAME=Linux \
     -DCMAKE_BUILD_TYPE=Release \
     -DWITH_OPENGL=OFF -DWITH_VTK=OFF \ 
     -DBUILD_keypoints=OFF -DBUILD_segmentation=OFF -DBUILD_surface=OFF \ 
-    -DBUILD_visualization=oFF -DBUILD_recognition=OFF -DBUILD_ml=off \ 
-    -DBUILD_registration=off -DBUILD_tools=OFF -DBUILD_tracking=OFF -DBUILD_stereo=OFF .. && \
+    -DBUILD_visualization=OFF -DBUILD_recognition=OFF -DBUILD_ml=OFF \ 
+    -DBUILD_registration=OFF -DBUILD_tools=OFF -DBUILD_tracking=OFF -DBUILD_stereo=OFF .. && \
   make -j${BUILD_WORKERS} install && \
   rm -rf /tmp/pcl
 
@@ -68,7 +72,6 @@ RUN cd /tmp && git clone --recurse-submodules -b v1.72.0 --depth 1 --shallow-sub
     cmake \
       -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
       -DgRPC_INSTALL=ON \
-      -DCMAKE_SYSTEM_NAME=Linux \
       -DgRPC_BUILD_TESTS=OFF \
       -DCMAKE_BUILD_TYPE=Release .. && \
     make -j${BUILD_WORKERS} install && \
