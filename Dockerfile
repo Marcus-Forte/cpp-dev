@@ -23,12 +23,13 @@ RUN apt-get update && apt-get install -y \
   libgmock-dev \
   libboost-all-dev \
   libi2c-dev \
-  python3 \
-  python3-pip \
-  python-is-python3 \
+  plantuml \
   gdb && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+
+# Install `uv` for python.
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 COPY ./toolchains /opt/toolchains
 
