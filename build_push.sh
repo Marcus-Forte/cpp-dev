@@ -21,17 +21,21 @@ build_native() {
     echo "--- Building Native Version ($TAG) ---"
 
     local BUILD_CMD="docker build"
-    if [ -n "$PLAT" ]; then
-        BUILD_CMD="$BUILD_CMD --platform $PLAT"
+
+    if [ "$PUSH" = true ]; then
+        PUSH_OPTION="--push"
     fi
 
-    # Build the image; defer push until after build for clarity.
+
+    if [ -n "$PLAT" ]; then
+        BUILD_CMD="$BUILD_CMD $PUSH_OPTION --platform $PLAT"
+    fi
+
+    # Build and push the image.
     $BUILD_CMD \
         -t "$TAG" .
 
-    if [ "$PUSH" = true ]; then
-        docker push "$TAG"
-    fi
+    
 }
 
 # Parse Arguments

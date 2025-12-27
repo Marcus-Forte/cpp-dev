@@ -3,11 +3,9 @@ FROM debian:trixie-slim
 ARG DEBIAN_FRONTEND=noninteractive
 ARG BUILD_WORKERS=6
 
-ENV PIP_ROOT_USER_ACTION=ignore
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ENV MAIN_TOOLCHAIN_FILE=/opt/toolchains/native.cmake
 
-# Common C++ dev tools (native builds only)
+# Common C++ dev tools and libraries
 RUN apt-get update && apt-get install -y \
   build-essential \
   clangd \
@@ -24,6 +22,7 @@ RUN apt-get update && apt-get install -y \
   libboost-all-dev \
   libi2c-dev \
   plantuml \
+  curl \
   gdb && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
