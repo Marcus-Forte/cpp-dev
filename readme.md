@@ -2,10 +2,17 @@
 
 See example `devcontainer.json` for usage.
 
+## Usage
+
+```bash
+./build_push.sh -h
+```
+
 ## Build & Push
 
-- `./build_push.sh -p`
-
+```bash
+./build_push.sh -p
+```
 ## Components
 
 - gtest + gmock

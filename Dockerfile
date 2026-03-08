@@ -7,15 +7,17 @@ ENV MAIN_TOOLCHAIN_FILE=/opt/toolchains/native.cmake
 
 # Common C++ dev tools and libraries
 RUN apt-get update && apt-get install -y \
-  build-essential \
+  clang libc++-dev libc++abi-dev \
   clangd \
   clang-format \
   clang-tidy \
   git \
   libeigen3-dev \
   cmake \
+  ninja-build \
   gcc-arm-none-eabi \
   libnanoflann-dev \
+  libflann-dev \
   libjsoncpp-dev \
   libgtest-dev \
   libgmock-dev \
@@ -34,27 +36,24 @@ COPY ./toolchains /opt/toolchains
 
 # PCL (Point Cloud Library)
 RUN cd /tmp && git clone -b pcl-1.15.1 https://github.com/PointCloudLibrary/pcl.git && \
-  mkdir -p /tmp/pcl/build && cd /tmp/pcl/build && \
-  cmake \
+  cmake -S pcl -B pcl/build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE=${MAIN_TOOLCHAIN_FILE} \
     -DWITH_OPENGL=OFF -DWITH_VTK=OFF \
-    -DBUILD_keypoints=OFF -DBUILD_segmentation=OFF -DBUILD_surface=OFF \
-    -DBUILD_visualization=OFF -DBUILD_recognition=OFF -DBUILD_ml=OFF \
+    -DBUILD_keypoints=OFF -DBUILD_segmentation=OFF -DBUILD_surface=OFF -DBUILD_filters=ON \
+    -DBUILD_visualization=OFF -DBUILD_recognition=OFF -DBUILD_ml=OFF -DBUILD_search=ON \
     -DBUILD_registration=OFF -DBUILD_tools=OFF -DBUILD_tracking=OFF -DBUILD_stereo=OFF .. && \
-  make -j${BUILD_WORKERS} install && \
+  cmake --build pcl/build -j${BUILD_WORKERS} && cmake --install pcl/build && \
   rm -rf /tmp/pcl
 
 # gRPC
-RUN cd /tmp && git clone --recurse-submodules -b v1.76.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc && \
-  mkdir -p /tmp/grpc/build && cd /tmp/grpc/build && \
-  cmake \
+RUN cd /tmp && git clone --recurse-submodules -b v1.78.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc && \
+  cmake -S grpc -B grpc/build -G Ninja \
     -DgRPC_INSTALL=ON \
     -DCMAKE_TOOLCHAIN_FILE=${MAIN_TOOLCHAIN_FILE} \
     -DgRPC_BUILD_TESTS=OFF \
-    -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_BUILD_TYPE=Release .. && \
-  make -j${BUILD_WORKERS} install && \
+  cmake --build grpc/build -j${BUILD_WORKERS} && cmake --install grpc/build && \
   rm -rf /tmp/grpc
 
 # OpenCV Stack
@@ -93,7 +92,6 @@ RUN apt-get update && apt-get install -y \
     # rpicam-apps dependencies
     libboost-program-options-dev libdrm-dev libexif-dev \
     libpng-dev libjpeg-dev \
-    ninja-build \
     # GStreamer development packages
     libgstreamer1.0-dev \
     gstreamer1.0-tools && \

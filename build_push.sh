@@ -23,12 +23,11 @@ build_native() {
     local BUILD_CMD="docker build"
 
     if [ "$PUSH" = true ]; then
-        PUSH_OPTION="--push"
+        BUILD_CMD="$BUILD_CMD --push"
     fi
 
-
     if [ -n "$PLAT" ]; then
-        BUILD_CMD="$BUILD_CMD $PUSH_OPTION --platform $PLAT"
+        BUILD_CMD="$BUILD_CMD --platform $PLAT"
     fi
 
     # Build and push the image.
