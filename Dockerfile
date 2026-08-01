@@ -1,20 +1,23 @@
 FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG BUILD_WORKERS=6
-
-ENV MAIN_TOOLCHAIN_FILE=/opt/toolchains/native.cmake
+ARG CMAKE_VERSION=4.4.2
 
 # Common C++ dev tools and libraries
-RUN apt-get update && apt-get install -y \
-  clang libc++-dev libc++abi-dev \
+RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/sid.list && \
+  apt-get update && \
+  apt-get install -y -t sid g++-16 gcc-16 && \
+  rm /etc/apt/sources.list.d/sid.list && \
+  apt-get update && \
+  apt-get install -y \
   clangd \
   clang-format \
   clang-tidy \
   git \
   libeigen3-dev \
-  cmake \
   ninja-build \
+  gcc \
+  g++ \
   gcc-arm-none-eabi \
   libnanoflann-dev \
   libflann-dev \
@@ -26,34 +29,54 @@ RUN apt-get update && apt-get install -y \
   plantuml \
   curl \
   gdb && \
+
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
+
+# Install CMake binary
+RUN arch="$(dpkg --print-architecture)" && \
+  case "$arch" in \
+    amd64) cmake_arch="x86_64" ;; \
+    arm64) cmake_arch="aarch64" ;; \
+    *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; \
+  esac && \
+  cmake_dir="cmake-${CMAKE_VERSION}-linux-${cmake_arch}" && \
+  curl -fsSL "https://cmake.org/files/v${CMAKE_VERSION%.*}/${cmake_dir}.tar.gz" -o /tmp/${cmake_dir}.tar.gz && \
+  tar -xzf /tmp/${cmake_dir}.tar.gz -C /opt && \
+  ln -sf /opt/${cmake_dir}/bin/* /usr/local/bin/ && \
+  rm -f /tmp/${cmake_dir}.tar.gz
 
 # Install `uv` for python.
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Cmake config
+ARG CONF_PRESET=gcc-native
+ARG BUILD_PRESET=build-native
+ARG PRESET_FILE=/tmp/CMakePresets.json
+ARG BUILD_WORKERS=6
+
 COPY ./toolchains /opt/toolchains
+COPY ./CMakePresets.json ${PRESET_FILE}
 
 # PCL (Point Cloud Library)
 RUN cd /tmp && git clone -b pcl-1.15.1 https://github.com/PointCloudLibrary/pcl.git && \
-  cmake -S pcl -B pcl/build -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_TOOLCHAIN_FILE=${MAIN_TOOLCHAIN_FILE} \
+  cd /tmp/pcl && \
+  cmake --presets-file ${PRESET_FILE} --preset ${CONF_PRESET} -DCMAKE_BUILD_TYPE=Release \
     -DWITH_OPENGL=OFF -DWITH_VTK=OFF \
     -DBUILD_keypoints=OFF -DBUILD_segmentation=OFF -DBUILD_surface=OFF -DBUILD_filters=ON \
     -DBUILD_visualization=OFF -DBUILD_recognition=OFF -DBUILD_ml=OFF -DBUILD_search=ON \
-    -DBUILD_registration=OFF -DBUILD_tools=OFF -DBUILD_tracking=OFF -DBUILD_stereo=OFF .. && \
-  cmake --build pcl/build -j${BUILD_WORKERS} && cmake --install pcl/build && \
+    -DBUILD_registration=OFF -DBUILD_tools=OFF -DBUILD_tracking=OFF -DBUILD_stereo=OFF && \
+  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/native && \
   rm -rf /tmp/pcl
 
 # gRPC
-RUN cd /tmp && git clone --recurse-submodules -b v1.78.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc && \
-  cmake -S grpc -B grpc/build -G Ninja \
+RUN cd /tmp && git clone --recurse-submodules -b v1.83.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc 
+
+RUN cd /tmp/grpc && \
+  cmake --presets-file ${PRESET_FILE} --preset ${CONF_PRESET} -DCMAKE_BUILD_TYPE=Release \
     -DgRPC_INSTALL=ON \
-    -DCMAKE_TOOLCHAIN_FILE=${MAIN_TOOLCHAIN_FILE} \
-    -DgRPC_BUILD_TESTS=OFF \
-    -DCMAKE_BUILD_TYPE=Release .. && \
-  cmake --build grpc/build -j${BUILD_WORKERS} && cmake --install grpc/build && \
+    -DgRPC_BUILD_TESTS=OFF && \
+  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/native && \
   rm -rf /tmp/grpc
 
 # OpenCV Stack
@@ -67,16 +90,15 @@ RUN apt-get update && apt-get install -y \
 # OpenCv
 RUN cd /tmp && wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip && \
   unzip opencv.zip && \
-  mkdir opencv-4.x/build && cd opencv-4.x/build && \
-  cmake  \
+  cd opencv-4.x && \
+  cmake --presets-file ${PRESET_FILE} --preset ${CONF_PRESET} \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE=${MAIN_TOOLCHAIN_FILE} \
   -DBUILD_TESTS=OFF \
   -DBUILD_PERF_TESTS=OFF \
   -DBUILD_EXAMPLES=OFF \
   -DBUILD_opencv_apps=OFF \
-  -DWITH_GSTREAMER=ON .. && \
-  cmake --build . -j${BUILD_WORKERS} && cmake --install . && \
+  -DWITH_GSTREAMER=ON && \
+  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/native && \
   rm -r /tmp/opencv-4.x
 
 # RPI Camera SDK (TODO, make it optional?)

@@ -30,7 +30,8 @@ Default image tag is `mdnf1992/cpp-dev:latest`.
 
 Toolchain files are copied to `/opt/toolchains`:
 
-- `/opt/toolchains/native.cmake`: native host builds using Clang and C++23
+- `/opt/toolchains/native.cmake`: native host builds using GCC and C++23
+- `/opt/toolchains/native-gcc-16.cmake`: native host builds using GCC-16 and C++26
 - `/opt/toolchains/arm-toolchain.cmake`: `arm-none-eabi` bare-metal microcontroller builds
 
 Example CMake usage:
@@ -46,3 +47,22 @@ cmake --build build-arm
 ```
 
 Note: `arm-toolchain.cmake` is for bare-metal ARM microcontrollers, not Raspberry Pi Linux user-space targets.
+
+## Recommended usage in app repos
+
+To use this image as a devcontainer, the most reliable approach is:
+
+- Copy the reference preset file `CMakePresets.json` to the root of the user repo.
+- In VS Code, use the CMake Tools extension with presets enabled.
+
+To build, use:
+
+```bash
+cmake --preset devcontainer-native
+cmake --build --preset build-native
+```
+
+```bash
+cmake --preset devcontainer-arm-none-eabi
+cmake --build --preset build-arm-none-eabi
+```

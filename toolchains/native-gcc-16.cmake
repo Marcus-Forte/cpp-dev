@@ -1,9 +1,9 @@
 # Toolchain file for native builds that run on the host system
 # set(CMAKE_SYSTEM_NAME Linux)
 
-set(CMAKE_C_COMPILER   /usr/bin/gcc)
-set(CMAKE_CXX_COMPILER /usr/bin/g++)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_COMPILER   /usr/bin/gcc-16)
+set(CMAKE_CXX_COMPILER /usr/bin/g++-16)
+set(CMAKE_CXX_STANDARD 26)
 
 # If building for arm64 host, use generic Armv8-A flags for broad compatibility
 if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
