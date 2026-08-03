@@ -16,15 +16,6 @@
       }
     },
     {
-      "name": "gcc-16-native",
-      "displayName": "gcc 16 Native",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/native",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "/opt/toolchains/native-gcc-16.cmake"
-      }
-    },
-    {
       "name": "devcontainer-arm-none-eabi",
       "displayName": "Devcontainer ARM (bare-metal)",
       "generator": "Ninja",
@@ -38,10 +29,6 @@
     {
       "name": "build-native",
       "configurePreset": "gcc-native"
-    },
-    {
-      "name": "build-native-gcc-16",
-      "configurePreset": "gcc-16-native"
     },
     {
       "name": "build-arm-none-eabi",

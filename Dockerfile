@@ -16,8 +16,6 @@ RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/s
   git \
   libeigen3-dev \
   ninja-build \
-  gcc \
-  g++ \
   gcc-arm-none-eabi \
   libnanoflann-dev \
   libflann-dev \
@@ -26,10 +24,8 @@ RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/s
   libgmock-dev \
   libboost-all-dev \
   libi2c-dev \
-  plantuml \
   curl \
   gdb && \
-
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
@@ -46,10 +42,10 @@ RUN arch="$(dpkg --print-architecture)" && \
   ln -sf /opt/${cmake_dir}/bin/* /usr/local/bin/ && \
   rm -f /tmp/${cmake_dir}.tar.gz
 
-# Install `uv` for python.
+# Install `uv` for python
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Cmake config
+# CMake settings
 ARG CONF_PRESET=gcc-native
 ARG BUILD_PRESET=build-native
 ARG PRESET_FILE=/tmp/CMakePresets.json
