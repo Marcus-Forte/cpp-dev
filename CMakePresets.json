@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 8,
   "cmakeMinimumRequired": {
     "major": 4,
     "minor": 4,
@@ -7,32 +7,34 @@
   },
   "configurePresets": [
     {
-      "name": "gcc-native",
-      "displayName": "gcc Native",
+      "name": "gcc",
+      "displayName": "GCC",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/native",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "/opt/toolchain/gcc.cmake",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "/opt/toolchains/native.cmake"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
-      "name": "devcontainer-arm-none-eabi",
-      "displayName": "Devcontainer ARM (bare-metal)",
+      "name": "arm-none-eabi",
+      "displayName": "ARM (bare-metal)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/arm-none-eabi",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "toolchainFile": "/opt/toolchain/arm-toolchain.cmake",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "/opt/toolchains/arm-toolchain.cmake"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "build-native",
-      "configurePreset": "gcc-native"
+      "name": "build-gcc",
+      "configurePreset": "gcc"
     },
     {
       "name": "build-arm-none-eabi",
-      "configurePreset": "devcontainer-arm-none-eabi"
+      "configurePreset": "arm-none-eabi"
     }
   ]
 }

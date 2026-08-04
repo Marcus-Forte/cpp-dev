@@ -1,5 +1,5 @@
 {
-    "name": "C++ Dev. Container Reference",
+    "name": "C++ Dev. Container",
     "image": "mdnf1992/cpp-dev",
     "customizations": {
         "vscode": {
@@ -10,7 +10,6 @@
                 "ms-vscode.cpp-devtools"
             ],
             "settings": {
-                "C_Cpp.intelliSenseEngine": "disabled",
                 "clangd.arguments": ["-header-insertion=never"],
                 "cmake.useCMakePresets": "always"
             }

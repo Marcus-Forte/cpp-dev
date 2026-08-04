@@ -1,5 +1,4 @@
 # Toolchain file for native builds that run on the host system
-# set(CMAKE_SYSTEM_NAME Linux)
 
 set(CMAKE_C_COMPILER   /usr/bin/gcc-16)
 set(CMAKE_CXX_COMPILER /usr/bin/g++-16)
@@ -12,4 +11,4 @@ if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
     string(APPEND CMAKE_CXX_FLAGS_INIT " ${_GENERIC_ARM64_FLAGS}")
 endif()
 
-message(STATUS "Loaded NATIVE toolchain file. Using flags: ${_GENERIC_ARM64_FLAGS}")
+message(STATUS "Loaded toolchain file. Using flags: ${_GENERIC_ARM64_FLAGS}")

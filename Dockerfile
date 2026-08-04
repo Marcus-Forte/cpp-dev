@@ -46,12 +46,12 @@ RUN arch="$(dpkg --print-architecture)" && \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # CMake settings
-ARG CONF_PRESET=gcc-native
-ARG BUILD_PRESET=build-native
-ARG PRESET_FILE=/tmp/CMakePresets.json
+ARG CONF_PRESET=gcc
+ARG BUILD_PRESET=build-gcc
+ARG PRESET_FILE=/opt/toolchain/CMakePresets.json
 ARG BUILD_WORKERS=6
 
-COPY ./toolchains /opt/toolchains
+COPY ./toolchain /opt/toolchain
 COPY ./CMakePresets.json ${PRESET_FILE}
 
 # PCL (Point Cloud Library)
@@ -62,7 +62,7 @@ RUN cd /tmp && git clone -b pcl-1.15.1 https://github.com/PointCloudLibrary/pcl.
     -DBUILD_keypoints=OFF -DBUILD_segmentation=OFF -DBUILD_surface=OFF -DBUILD_filters=ON \
     -DBUILD_visualization=OFF -DBUILD_recognition=OFF -DBUILD_ml=OFF -DBUILD_search=ON \
     -DBUILD_registration=OFF -DBUILD_tools=OFF -DBUILD_tracking=OFF -DBUILD_stereo=OFF && \
-  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/native && \
+  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/gcc && \
   rm -rf /tmp/pcl
 
 # gRPC
@@ -70,9 +70,10 @@ RUN cd /tmp && git clone --recurse-submodules -b v1.83.0 --depth 1 --shallow-sub
 
 RUN cd /tmp/grpc && \
   cmake --presets-file ${PRESET_FILE} --preset ${CONF_PRESET} -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DgRPC_INSTALL=ON \
     -DgRPC_BUILD_TESTS=OFF && \
-  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/native && \
+  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/gcc && \
   rm -rf /tmp/grpc
 
 # OpenCV Stack
@@ -94,8 +95,8 @@ RUN cd /tmp && wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.z
   -DBUILD_EXAMPLES=OFF \
   -DBUILD_opencv_apps=OFF \
   -DWITH_GSTREAMER=ON && \
-  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/native && \
-  rm -r /tmp/opencv-4.x
+  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/gcc && \
+  rm -r /tmp/opencv*
 
 # RPI Camera SDK (TODO, make it optional?)
 RUN apt-get update && apt-get install -y \
