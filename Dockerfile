@@ -54,19 +54,8 @@ ARG BUILD_WORKERS=6
 COPY ./toolchain /opt/toolchain
 COPY ./CMakePresets.json ${PRESET_FILE}
 
-# PCL (Point Cloud Library)
-RUN cd /tmp && git clone -b pcl-1.15.1 https://github.com/PointCloudLibrary/pcl.git && \
-  cd /tmp/pcl && \
-  cmake --presets-file ${PRESET_FILE} --preset ${CONF_PRESET} -DCMAKE_BUILD_TYPE=Release \
-    -DWITH_OPENGL=OFF -DWITH_VTK=OFF \
-    -DBUILD_keypoints=OFF -DBUILD_segmentation=OFF -DBUILD_surface=OFF -DBUILD_filters=ON \
-    -DBUILD_visualization=OFF -DBUILD_recognition=OFF -DBUILD_ml=OFF -DBUILD_search=ON \
-    -DBUILD_registration=OFF -DBUILD_tools=OFF -DBUILD_tracking=OFF -DBUILD_stereo=OFF && \
-  cmake --build --presets-file ${PRESET_FILE} --preset ${BUILD_PRESET} -j${BUILD_WORKERS} && cmake --install build/gcc && \
-  rm -rf /tmp/pcl
-
 # gRPC
-RUN cd /tmp && git clone --recurse-submodules -b v1.83.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc 
+RUN cd /tmp && git clone --recurse-submodules -b v1.84.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc 
 
 RUN cd /tmp/grpc && \
   cmake --presets-file ${PRESET_FILE} --preset ${CONF_PRESET} -DCMAKE_BUILD_TYPE=Release \
@@ -151,3 +140,6 @@ RUN cd /tmp && git clone https://github.com/raspberrypi/rpicam-apps.git && \
     ldconfig
 
 ENV GST_PLUGIN_PATH=/usr/local/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/local/lib/gstreamer-1.0
+
+# Opencode
+RUN curl -fsSL https://opencode.ai/v2/install | bash
