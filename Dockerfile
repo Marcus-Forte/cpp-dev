@@ -17,12 +17,11 @@ RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/s
   libeigen3-dev \
   ninja-build \
   gcc-arm-none-eabi \
-  libnanoflann-dev \
-  libflann-dev \
   libjsoncpp-dev \
   libgtest-dev \
   libgmock-dev \
   libboost-all-dev \
+  libspdlog-dev \
   libi2c-dev \
   curl \
   gdb && \
