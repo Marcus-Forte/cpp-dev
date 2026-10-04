@@ -1,15 +1,13 @@
-FROM debian:trixie-slim
+FROM debian:sid-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG CMAKE_VERSION=4.4.2
 
 # Common C++ dev tools and libraries
-RUN echo "deb http://deb.debian.org/debian sid main" > /etc/apt/sources.list.d/sid.list && \
-  apt-get update && \
-  apt-get install -y -t sid g++-16 gcc-16 && \
-  rm /etc/apt/sources.list.d/sid.list && \
-  apt-get update && \
+RUN apt-get update && \
   apt-get install -y \
+  g++-16 \
+  gcc-16 \
   clangd \
   clang-format \
   clang-tidy \
