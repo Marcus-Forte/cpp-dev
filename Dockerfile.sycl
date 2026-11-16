@@ -1,0 +1,166 @@
+# SYCL + oneMath development container
+#
+# Supported base images (pass via --build-arg BASE_IMG=<image>):
+# - Default C++ dev base: mdnf1992/cpp-dev
+# - NVIDIA CUDA (Ubuntu 24.04): nvidia/cuda:13.1.0-devel-ubuntu24.04 (https://hub.docker.com/r/nvidia/cuda)
+# - NVIDIA Jetson / Tegra L4T: nvcr.io/nvidia/l4t-cuda:12.6.11-devel (https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-cuda)
+#
+# Targets:
+# - onemath_lapack:  SYCL + Reference LAPACK/CBLAS + oneMath (Netlib BLAS backend)
+# - onemath_generic: SYCL + oneMath (pure-SYCL generic BLAS backend)
+# - onemath_cublas:  SYCL (CUDA) + Reference LAPACK/CBLAS + oneMath (cuBLAS + Netlib backends)
+
+ARG BASE_IMG=mdnf1992/cpp-dev
+
+# Common base: OS dependencies and SYCL environment variables
+FROM ${BASE_IMG} AS sycl_deps
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV SYCL_HOME="/opt/sycl"
+ENV PATH="${SYCL_HOME}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${SYCL_HOME}/lib"
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    ca-certificates \
+    clangd \
+    cmake \
+    curl \
+    git \
+    libeigen3-dev \
+    libhwloc-dev \
+    libzstd-dev \
+    lld \
+    ninja-build \
+    ocl-icd-opencl-dev \
+    pkg-config \
+    python3 \
+    wget && \
+  apt-get clean && apt-get autoremove -y && \
+  rm -rf /var/lib/apt/lists/*
+
+COPY ./toolchain /opt/toolchain
+COPY ./CMakePresets.json /opt/toolchain/CMakePresets.json
+
+# SYCL compiler build stage. Pass --build-arg SYCL_CUDA_FLAG="--cuda" to enable the CUDA backend.
+FROM sycl_deps AS sycl_build
+
+ARG SYCL_VERSION=sycl
+ARG SYCL_CUDA_FLAG=""
+ARG BUILD_WORKERS=8
+
+RUN git clone --depth 1 -b ${SYCL_VERSION} https://github.com/intel/llvm /tmp/llvm
+
+RUN python3 /tmp/llvm/buildbot/configure.py \
+    ${SYCL_CUDA_FLAG} \
+    --native_cpu \
+    --no-assertions \
+    -t Release \
+    --cmake-opt="-DCMAKE_INSTALL_PREFIX=${SYCL_HOME}" \
+    --cmake-opt="-DLLVM_USE_LINKER=lld" \
+    --cmake-opt="-DLLVM_USE_STATIC_ZSTD=OFF" \
+    --cmake-opt="-DSYCL_INCLUDE_TESTS=OFF"
+
+RUN python3 /tmp/llvm/buildbot/compile.py -t deploy-sycl-toolchain -j${BUILD_WORKERS} && \
+    cmake --build /tmp/llvm/build --target install-clang-scan-deps -j${BUILD_WORKERS}
+
+# Clean SYCL toolchain stage without LLVM build tree layers
+FROM sycl_deps AS sycl
+
+COPY --from=sycl_build ${SYCL_HOME} ${SYCL_HOME}
+
+# Reference LAPACK + CBLAS (shared by targets that enable the Netlib backend)
+FROM sycl AS lapack
+
+ARG LAPACK_VERSION=3.12.1
+ARG BUILD_WORKERS=8
+
+RUN apt-get update && apt-get install -y wget gfortran && \
+  apt-get clean && apt-get autoremove -y && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN cd /tmp && \
+    wget -q https://github.com/Reference-LAPACK/lapack/archive/refs/tags/v${LAPACK_VERSION}.tar.gz -O lapack.tar.gz && \
+    tar -xzf lapack.tar.gz && \
+    cmake -S lapack-${LAPACK_VERSION} -B lapack-${LAPACK_VERSION}/build -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_TESTING=OFF \
+      -DTEST_FORTRAN_COMPILER=OFF \
+      -DCBLAS=ON \
+      -DLAPACKE=ON \
+      -DBUILD_INDEX64_EXT_API=OFF \
+      -DCMAKE_POSITION_INDEPENDENT_CODE=ON && \
+    cmake --build lapack-${LAPACK_VERSION}/build -j${BUILD_WORKERS} && \
+    cmake --install lapack-${LAPACK_VERSION}/build && \
+    ldconfig && \
+    rm -rf /tmp/lapack*
+
+# Target: oneMath with Reference LAPACK / Netlib BLAS backend
+FROM lapack AS onemath_lapack
+
+ARG ONEMATH_VERSION=develop
+ARG BUILD_WORKERS=8
+
+RUN cd /tmp && \
+    git clone --depth 1 -b ${ONEMATH_VERSION} https://github.com/uxlfoundation/oneMath.git && \
+    cmake -S oneMath -B oneMath/build -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=${SYCL_HOME}/bin/clang \
+      -DCMAKE_CXX_COMPILER=${SYCL_HOME}/bin/clang++ \
+      -DBUILD_FUNCTIONAL_TESTS=OFF \
+      -DBUILD_EXAMPLES=OFF \
+      -DENABLE_NETLIB_BACKEND=ON \
+      -DENABLE_MKLCPU_BACKEND=OFF \
+      -DENABLE_MKLGPU_BACKEND=OFF && \
+    cmake --build oneMath/build -j${BUILD_WORKERS} && \
+    cmake --install oneMath/build --prefix ${SYCL_HOME} && \
+    rm -rf /tmp/oneMath
+
+# Target: oneMath with Generic BLAS backend (pure SYCL)
+# https://uxlfoundation.github.io/oneMath/building_the_project_with_dpcpp.html#building-for-onemath-generic-sycl-blas
+FROM sycl AS onemath_generic
+
+ARG ONEMATH_VERSION=develop
+ARG SYCL_GENERIC_TARGETS="spir64,native_cpu"
+ARG BUILD_WORKERS=8
+
+RUN cd /tmp && \
+    git clone --depth 1 -b ${ONEMATH_VERSION} https://github.com/uxlfoundation/oneMath.git && \
+    cmake -S oneMath -B oneMath/build -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=${SYCL_HOME}/bin/clang \
+      -DCMAKE_CXX_COMPILER=${SYCL_HOME}/bin/clang++ \
+      -DBUILD_FUNCTIONAL_TESTS=OFF \
+      -DBUILD_EXAMPLES=OFF \
+      -DCMAKE_CXX_FLAGS="-fsycl -fsycl-targets=${SYCL_GENERIC_TARGETS}" \
+      -DENABLE_GENERIC_BLAS_BACKEND=ON \
+      -DENABLE_MKLCPU_BACKEND=OFF \
+      -DENABLE_MKLGPU_BACKEND=OFF && \
+    cmake --build oneMath/build -j${BUILD_WORKERS} && \
+    cmake --install oneMath/build --prefix ${SYCL_HOME} && \
+    rm -rf /tmp/oneMath
+
+# Target: oneMath with cuBLAS + Netlib BLAS backends
+# Requires BASE_IMG with CUDA toolkit and --build-arg SYCL_CUDA_FLAG="--cuda".
+FROM lapack AS onemath_cublas
+
+ARG ONEMATH_VERSION=develop
+ARG BUILD_WORKERS=8
+
+RUN cd /tmp && \
+    git clone --depth 1 -b ${ONEMATH_VERSION} https://github.com/uxlfoundation/oneMath.git && \
+    cmake -S oneMath -B oneMath/build -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=${SYCL_HOME}/bin/clang \
+      -DCMAKE_CXX_COMPILER=${SYCL_HOME}/bin/clang++ \
+      -DBUILD_FUNCTIONAL_TESTS=OFF \
+      -DBUILD_EXAMPLES=OFF \
+      -DENABLE_CUSOLVER_BACKEND=OFF \
+      -DENABLE_NETLIB_BACKEND=ON \
+      -DENABLE_CUBLAS_BACKEND=ON \
+      -DENABLE_MKLCPU_BACKEND=OFF \
+      -DENABLE_MKLGPU_BACKEND=OFF \
+      -DCUDA_CUDA_LIBRARY=/usr/local/cuda/lib64/libcudart.so && \
+    cmake --build oneMath/build -j${BUILD_WORKERS} && \
+    cmake --install oneMath/build --prefix ${SYCL_HOME} && \
+    rm -rf /tmp/oneMath

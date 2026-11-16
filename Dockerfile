@@ -21,6 +21,7 @@ RUN apt-get update && \
   libgmock-dev \
   libboost-all-dev \
   libspdlog-dev \
+  libtbb-dev \
   libi2c-dev \
   curl \
   nodejs \
