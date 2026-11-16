@@ -12,6 +12,7 @@ RUN apt-get update && \
   clang-format \
   clang-tidy \
   git \
+  git-lfs \
   libeigen3-dev \
   ninja-build \
   gcc-arm-none-eabi \
@@ -22,6 +23,8 @@ RUN apt-get update && \
   libspdlog-dev \
   libi2c-dev \
   curl \
+  nodejs \
+  npm \
   gdb && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
