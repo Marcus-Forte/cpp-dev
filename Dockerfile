@@ -493,6 +493,7 @@ RUN set -eux; \
       '#include <Eigen/Dense>' \
       '#include <spdlog/spdlog.h>' \
       '#include <grpcpp/grpcpp.h>' \
+      '#include <google/protobuf/message.h>' \
       '#include <opencv2/core.hpp>' \
       'int main() {' \
       '  sycl::queue q{sycl::default_selector_v};' \
@@ -501,6 +502,7 @@ RUN set -eux; \
       '  return q.get_device().is_cpu() ? 0 : 1;' \
       '}' > libs.cc; \
     clang++ -std=c++20 -fsycl -fsycl-targets=native_cpu -Xsycl-target-frontend=native_cpu -DEIGEN_DONT_VECTORIZE \
+      -Xsycl-target-frontend=native_cpu -U__ARM_NEON -Xsycl-target-frontend=native_cpu -U__ARM_NEON__ \
       $(pkg-config --cflags eigen3) -I/usr/local/include/opencv4 \
       -c libs.cc -o libs.o; \
     cd /; rm -rf /tmp/smoke /tmp/sycl-ls.txt

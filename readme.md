@@ -97,7 +97,8 @@ docker tag mdnf1992/cpp-dev:latest-previous mdnf1992/cpp-dev:latest   # roll bac
 - `/opt/sycl/lib` is on the loader path through `/etc/ld.so.conf.d/zz-sycl.conf` (`ldconfig`), after everything else, and there is no `LD_LIBRARY_PATH`: the system `libOpenCL` and other system libraries win over the copies DPC++ ships.
 - `/opt/lapack` (Reference LAPACK/CBLAS, for oneMath's netlib backend) is outside `/usr/local` so it cannot shadow the system BLAS for GCC builds.
 - Eigen in the DPC++ device pass runs scalar: `-fsycl` consumers get that from moptim's CMake target (see moptim's readme).
-- The build runs smoke tests: `sycl-ls` lists `native_cpu`, a `single_task` returns 42, a `-fsycl` translation unit including Eigen, spdlog, gRPC and OpenCV compiles, and `clang-format`, `clangd`, `clang-tidy` resolve to `/usr/bin`.
+- On arm64 the `native_cpu` device front end crashes (`ItaniumMangle`, "unexpected Neon vector element type") on `<arm_neon.h>`, which OpenCV and abseil (so protobuf and gRPC) include under `__ARM_NEON`. `-fsycl` consumers need `-Xsycl-target-frontend=native_cpu -U__ARM_NEON -Xsycl-target-frontend=native_cpu -U__ARM_NEON__` (device pass only); moptim's CMake target adds them automatically. Including `<arm_neon.h>` directly in a SYCL translation unit still crashes this compiler.
+- The build runs smoke tests: `sycl-ls` lists `native_cpu`, a `single_task` returns 42, a `-fsycl` translation unit including Eigen, spdlog, gRPC, protobuf and OpenCV compiles, and `clang-format`, `clangd`, `clang-tidy` resolve to `/usr/bin`.
 
 ## Toolchains inside the container
 
