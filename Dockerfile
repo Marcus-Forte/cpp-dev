@@ -460,6 +460,12 @@ ENV SYCL_HOME=/opt/sycl
 # Appended: /usr/bin clang-format, clangd and clang-tidy stay first (mslam's build runs
 # `clang-format -i`); clang, clang++ and sycl-ls come from /opt/sycl/bin.
 ENV PATH=${PATH}:/opt/sycl/bin
+# Debian's /etc/profile resets PATH, so login shells (`bash -lc`, and the login-shell probe VS Code
+# devcontainers use for their environment) would lose the ENV above. Same rule: append only.
+RUN printf '%s\n' \
+      'case ":$PATH:" in *:/opt/sycl/bin:*) ;; *) PATH="$PATH:/opt/sycl/bin" ;; esac' \
+      'export PATH' \
+      'export SYCL_HOME=/opt/sycl' > /etc/profile.d/zz-sycl.sh
 
 # Smoke tests: the image must be able to compile and run SYCL code, and compile a -fsycl
 # translation unit that uses the libraries of the repos. On cuda/tegra sycl-ls may list no CUDA
@@ -473,6 +479,9 @@ RUN set -eux; \
     test "$(command -v clangd)" = /usr/bin/clangd; \
     test "$(command -v clang-tidy)" = /usr/bin/clang-tidy; \
     test "$(command -v clang++)" = /opt/sycl/bin/clang++; \
+    test "$(bash -lc 'command -v clang++')" = /opt/sycl/bin/clang++; \
+    test "$(bash -lc 'command -v clang-format')" = /usr/bin/clang-format; \
+    bash -lc 'sycl-ls' | grep -q native_cpu; \
     mkdir /tmp/smoke; cd /tmp/smoke; \
     printf '%s\n' \
       '#include <sycl/sycl.hpp>' \
