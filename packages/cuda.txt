@@ -1,0 +1,18 @@
+# Ubuntu 24.04 (CUDA variant): apt packages of the dev_deps stage.
+# Not installed from apt, built from source in dev_deps so every variant has the same versions as
+# Debian sid: Eigen 5.0.1 (Ubuntu ships 3.4), fmt 11.1.1 and spdlog 1.15.3 (Ubuntu's fmt hits the
+# clang 23 consteval error). Node.js 24 comes from nodejs.org (Ubuntu ships 12 and 18).
+clangd
+clang-format
+clang-tidy
+git-lfs
+gcc-arm-none-eabi
+libjsoncpp-dev
+libgtest-dev
+libgmock-dev
+libboost-all-dev
+libtbb-dev
+libi2c-dev
+gdb
+libgstreamer1.0-dev
+libgstreamer-plugins-base1.0-dev

@@ -1,0 +1,20 @@
+# Debian sid: apt packages of the dev_deps stage (comments and blank lines are ignored).
+# The compilers and build tools of the os-debian stage (gcc-16, ninja, lld, ...) are not repeated here.
+clangd
+clang-format
+clang-tidy
+git-lfs
+libeigen3-dev
+gcc-arm-none-eabi
+libjsoncpp-dev
+libgtest-dev
+libgmock-dev
+libboost-all-dev
+libspdlog-dev
+libtbb-dev
+libi2c-dev
+nodejs
+npm
+gdb
+libgstreamer1.0-dev
+libgstreamer-plugins-base1.0-dev
