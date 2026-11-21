@@ -36,7 +36,6 @@ VARIANT_TAGS = {"debian": "latest", "cuda": "cuda", "tegra": "tegra"}
 # They are left out of the toolchain hash.
 NON_TOOLCHAIN_ARGS = {
     "BUILD_WORKERS",
-    "LLVM_PARALLEL_LINK_JOBS",
     "WITH_RPI_CAMERA",
     "OPENCV_REF",
     "NODE_VERSION",

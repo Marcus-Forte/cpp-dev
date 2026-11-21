@@ -32,14 +32,13 @@ Pass them as `--docker-arg=--build-arg=NAME=value` (or `--build-workers N` for `
 | `CMAKE_VERSION` | `4.4.2` | CMake binary (arch-aware) |
 | `DPCPP_REF` | `fc235e9a9576f9771e0cab55aa31557095ef8091` | intel/llvm commit, fetched shallowly by SHA and verified |
 | `DPCPP_ASSERTIONS` | `ON` | LLVM assertions (moptim was validated with them on) |
-| `LLVM_PARALLEL_LINK_JOBS` | `2` | concurrent LLVM link jobs (RAM) |
 | `ONEMATH_REF` | `v0.9` | oneMath tag |
 | `ONEMATH_BACKENDS` | empty | comma list of `netlib`, `cublas`, `generic`; empty = netlib, plus cublas on cuda/tegra (`generic` excludes the others) |
 | `LAPACK_VERSION` | `3.12.1` | Reference LAPACK/CBLAS, installed in `/opt/lapack` |
 | `OPENCV_REF` | `333974b268332108df496e93a976c96d052f9dde` | OpenCV `4.x` commit of 2026-11-16 |
 | `NODE_VERSION` | `24.22.2` | Node.js binary on the Ubuntu variants (Debian uses its package, also 24.x) |
 | `WITH_RPI_CAMERA` | empty | libcamera + rpicam-apps: empty = `ON` for debian, `OFF` otherwise |
-| `BUILD_WORKERS` | `8` | parallel jobs of the builds inside the image |
+| `BUILD_WORKERS` | `8` | parallel jobs of the builds inside the image (lower it, e.g. `--build-workers 6`, if the DPC++ build runs out of RAM) |
 
 Always the same in every variant: gRPC `v1.84.0` (with its bundled protobuf and abseil, CMake configs in `/usr/local`), Eigen 5.0.1, fmt 11.1.1 and spdlog 1.15.3. Debian sid ships those Eigen, fmt and spdlog versions; the Ubuntu variants build them from source, because Ubuntu's Eigen is 3.4 (its NEON code does not compile in the DPC++ device pass) and its fmt 9/10 hits a consteval error with clang 23. Package lists per variant are in `packages/`.
 

@@ -124,7 +124,6 @@ ARG VARIANT
 ARG DPCPP_REPO=https://github.com/intel/llvm.git
 ARG DPCPP_REF=fc235e9a9576f9771e0cab55aa31557095ef8091
 ARG DPCPP_ASSERTIONS=ON
-ARG LLVM_PARALLEL_LINK_JOBS=2
 ARG BUILD_WORKERS=8
 ENV SYCL_HOME=/opt/sycl
 
@@ -155,7 +154,6 @@ RUN --mount=type=cache,id=cpp-dev-llvm-${VARIANT},target=/cache/llvm \
       --cmake-opt="-DCMAKE_CXX_COMPILER=g++-${CPP_DEV_GCC}" \
       --cmake-opt="-DLLVM_USE_LINKER=lld" \
       --cmake-opt="-DLLVM_USE_STATIC_ZSTD=OFF" \
-      --cmake-opt="-DLLVM_PARALLEL_LINK_JOBS=${LLVM_PARALLEL_LINK_JOBS}" \
       --cmake-opt="-DCMAKE_POLICY_VERSION_MINIMUM=3.5" \
       --cmake-opt="-DSYCL_INCLUDE_TESTS=OFF"; \
     python3 buildbot/compile.py -s "$src" -o "$obj" -t deploy-sycl-toolchain -j${BUILD_WORKERS}; \
