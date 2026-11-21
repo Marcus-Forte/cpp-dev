@@ -1,16 +1,42 @@
+// Standard dev container for a C++ / SYCL repo on mdnf1992/cpp-dev. Copy it to the repo's
+// .devcontainer/ and adjust.
 {
     "name": "C++ Dev. Container",
     "image": "mdnf1992/cpp-dev",
+    // GPU variants: "mdnf1992/cpp-dev:cuda" or "mdnf1992/cpp-dev:tegra", and in runArgs below
+    // "--gpus", "all" (cuda) or "--runtime", "nvidia" (tegra).
+    "runArgs": [
+        // "--gpus", "all",
+        // "--runtime", "nvidia",
+        // Hardware access (I2C, serial, cameras, V4L2, ...):
+        // "--privileged",
+        // "--device=/dev/i2c-1",
+    ],
+    "mounts": [
+        // One volume per build directory, named after the workspace and the dev container, so a
+        // build never lands in a synced folder. NEVER mount one volume on two targets: that
+        // aliases the build directories and corrupts both.
+        "source=${localWorkspaceFolderBasename}-build-${devcontainerId},target=${containerWorkspaceFolder}/build,type=volume"
+        // A second build directory needs its own volume, e.g. for build_sycl:
+        // "source=${localWorkspaceFolderBasename}-build_sycl-${devcontainerId},target=${containerWorkspaceFolder}/build_sycl,type=volume",
+        // udev and /dev for hardware:
+        // "source=/run/udev,target=/run/udev,type=bind,readonly",
+        // "source=/dev,target=/dev,type=bind",
+    ],
+    // Ports of the services the repo runs (gRPC, ...):
+    // "forwardPorts": [50051],
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-vscode.cpptools-extension-pack",
+                "ms-vscode.cmake-tools",
                 "llvm-vs-code-extensions.vscode-clangd",
+                "ms-vscode.cpptools",
                 "DrBlury.protobuf-vsc"
             ],
             "settings": {
                 "clangd.arguments": ["-header-insertion=never"],
-                "cmake.useCMakePresets": "always"
+                "cmake.useCMakePresets": "always",
+                "C_Cpp.intelliSenseEngine": "disabled"
             }
         }
     }
