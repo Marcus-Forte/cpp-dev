@@ -345,16 +345,19 @@ RUN set -eux; \
 # gRPC (with its bundled protobuf, abseil, re2, c-ares: CMake configs in /usr/local)
 # BoringSSL adds -Werror and builds its ssl_test/crypto_test unconditionally (no BUILD_TESTING
 # guard; gRPC_BUILD_TESTS does not reach it). GCC 12 (tegra) false-positives -Warray-bounds in
-# <bits/std_thread.h> there, so demote that one warning to a non-error.
+# <bits/std_thread.h> there, so demote that one warning to a non-error, on GCC 12 only. It goes
+# through $CXXFLAGS, not -DCMAKE_CXX_FLAGS, which would drop the toolchain file's CMAKE_CXX_FLAGS_INIT
+# (-march=armv8-a).
 RUN set -eux; \
     cd /tmp; \
     git clone --recurse-submodules -b v1.84.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc; \
-    cmake -S grpc -B grpc/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+    grpc_cxxflags=""; \
+    if [ "${CPP_DEV_GCC}" -le 12 ]; then grpc_cxxflags="-Wno-error=array-bounds"; fi; \
+    CXXFLAGS="$grpc_cxxflags" cmake -S grpc -B grpc/build -GNinja -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_TOOLCHAIN_FILE=/tmp/cpp-dev-build.cmake \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DgRPC_INSTALL=ON \
-      -DgRPC_BUILD_TESTS=OFF \
-      -DCMAKE_CXX_FLAGS=-Wno-error=array-bounds; \
+      -DgRPC_BUILD_TESTS=OFF; \
     cmake --build grpc/build -j${BUILD_WORKERS}; \
     cmake --install grpc/build; \
     ldconfig; \
