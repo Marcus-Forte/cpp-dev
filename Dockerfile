@@ -75,7 +75,10 @@ RUN set -eux; \
       gcc-${CPP_DEV_GCC} g++-${CPP_DEV_GCC} gfortran-${CPP_DEV_GCC} libc6-dev make \
       ninja-build lld \
       libzstd-dev zlib1g-dev libhwloc-dev ocl-icd-opencl-dev opencl-headers; \
-    apt-get clean; rm -rf /var/lib/apt/lists/*
+    apt-get clean; rm -rf /var/lib/apt/lists/*; \
+    for t in gcc g++ gfortran; do \
+      update-alternatives --install /usr/bin/$t $t /usr/bin/$t-${CPP_DEV_GCC} 100; \
+    done
 
 # Ubuntu 22.04 ships GCC 12 (C++20). msensor needs C++23 features that want GCC 13: if it fails
 # there, add the ubuntu-toolchain-r/test PPA here and set CPP_DEV_GCC=13 and CPP_DEV_CXX_STANDARD=23.
@@ -92,7 +95,10 @@ RUN set -eux; \
       gcc-${CPP_DEV_GCC} g++-${CPP_DEV_GCC} gfortran-${CPP_DEV_GCC} libc6-dev make \
       ninja-build lld \
       libzstd-dev zlib1g-dev libhwloc-dev ocl-icd-opencl-dev opencl-headers; \
-    apt-get clean; rm -rf /var/lib/apt/lists/*
+    apt-get clean; rm -rf /var/lib/apt/lists/*; \
+    for t in gcc g++ gfortran; do \
+      update-alternatives --install /usr/bin/$t $t /usr/bin/$t-${CPP_DEV_GCC} 100; \
+    done
 
 
 # ---------------------------------------------------------------------------------------------
@@ -337,6 +343,9 @@ RUN set -eux; \
     fi
 
 # gRPC (with its bundled protobuf, abseil, re2, c-ares: CMake configs in /usr/local)
+# BoringSSL adds -Werror and builds its ssl_test/crypto_test unconditionally (no BUILD_TESTING
+# guard; gRPC_BUILD_TESTS does not reach it). GCC 12 (tegra) false-positives -Warray-bounds in
+# <bits/std_thread.h> there, so demote that one warning to a non-error.
 RUN set -eux; \
     cd /tmp; \
     git clone --recurse-submodules -b v1.84.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc; \
@@ -344,7 +353,8 @@ RUN set -eux; \
       -DCMAKE_TOOLCHAIN_FILE=/tmp/cpp-dev-build.cmake \
       -DCMAKE_INSTALL_PREFIX=/usr/local \
       -DgRPC_INSTALL=ON \
-      -DgRPC_BUILD_TESTS=OFF; \
+      -DgRPC_BUILD_TESTS=OFF \
+      -DCMAKE_CXX_FLAGS=-Wno-error=array-bounds; \
     cmake --build grpc/build -j${BUILD_WORKERS}; \
     cmake --install grpc/build; \
     ldconfig; \
