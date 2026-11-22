@@ -315,7 +315,8 @@ RUN set -eux; \
       git clone --depth 1 -b 5.0.1 https://gitlab.com/libeigen/eigen.git; \
       cmake -S eigen -B eigen/build -GNinja -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_TOOLCHAIN_FILE=/tmp/cpp-dev-build.cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DBUILD_TESTING=OFF -DEIGEN_BUILD_TESTING=OFF -DEIGEN_BUILD_DOC=OFF; \
+        -DBUILD_TESTING=OFF -DEIGEN_BUILD_TESTING=OFF -DEIGEN_BUILD_DOC=OFF \
+        -DEIGEN_BUILD_BLAS=OFF -DEIGEN_BUILD_LAPACK=OFF; \
       cmake --install eigen/build; \
       git clone --depth 1 -b 11.1.1 https://github.com/fmtlib/fmt.git; \
       cmake -S fmt -B fmt/build -GNinja -DCMAKE_BUILD_TYPE=Release \
