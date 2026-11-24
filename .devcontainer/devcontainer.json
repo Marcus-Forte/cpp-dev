@@ -1,9 +1,9 @@
-// Standard dev container for a C++ / SYCL repo on mdnf1992/cpp-dev. Copy it to the repo's
+// Standard dev container for a C++ repo on mdnf1992/cpp-dev. Copy it to the repo's
 // .devcontainer/ and adjust.
 {
     "name": "C++ Dev. Container",
     "image": "mdnf1992/cpp-dev",
-    // GPU variants: "mdnf1992/cpp-dev:cuda" or "mdnf1992/cpp-dev:tegra", and in runArgs below
+    // GPU / SYCL variants: "mdnf1992/sycl-dev:cuda" or "mdnf1992/sycl-dev:tegra", and in runArgs below
     // "--gpus", "all" (cuda) or "--runtime", "nvidia" (tegra).
     "runArgs": [
         // "--gpus", "all",
@@ -17,8 +17,8 @@
         // build never lands in a synced folder. NEVER mount one volume on two targets: that
         // aliases the build directories and corrupts both.
         "source=${localWorkspaceFolderBasename}-build-${devcontainerId},target=${containerWorkspaceFolder}/build,type=volume"
-        // A second build directory needs its own volume, e.g. for build_sycl:
-        // "source=${localWorkspaceFolderBasename}-build_sycl-${devcontainerId},target=${containerWorkspaceFolder}/build_sycl,type=volume",
+        // A second build directory needs its own volume, e.g. for build2:
+        // "source=${localWorkspaceFolderBasename}-build2-${devcontainerId},target=${containerWorkspaceFolder}/build2,type=volume",
         // udev and /dev for hardware:
         // "source=/run/udev,target=/run/udev,type=bind,readonly",
         // "source=/dev,target=/dev,type=bind",
