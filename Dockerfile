@@ -141,6 +141,3 @@ RUN cd /tmp && git clone https://github.com/raspberrypi/rpicam-apps.git && \
     ldconfig
 
 ENV GST_PLUGIN_PATH=/usr/local/lib/aarch64-linux-gnu/gstreamer-1.0:/usr/local/lib/gstreamer-1.0
-
-# Opencode
-RUN curl -fsSL https://opencode.ai/v2/install | bash

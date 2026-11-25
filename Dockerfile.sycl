@@ -314,7 +314,9 @@ RUN printf '%s\n' \
       > /tmp/cpp-dev-build.cmake
 
 # Eigen 5.0.1, fmt 11.1.1 and spdlog 1.15.3 on the Ubuntu variants (Debian sid ships them): the
-# same versions everywhere, and a fmt that clang 23 accepts.
+# same versions everywhere, and a fmt that clang 23 accepts. With SPDLOG_FMT_EXTERNAL the bundled
+# fmt headers are not installed, so the define is baked into tweakme.h (as Debian does) for
+# builds that don't go through spdlog's CMake target or pkg-config.
 RUN set -eux; \
     if [ "${CPP_DEV_VARIANT}" != "debian" ]; then \
       cd /tmp; \
@@ -338,6 +340,8 @@ RUN set -eux; \
         -DSPDLOG_BUILD_TESTS=OFF -DSPDLOG_BUILD_EXAMPLE=OFF; \
       cmake --build spdlog/build -j${BUILD_WORKERS}; \
       cmake --install spdlog/build; \
+      sed -i 's|^// #define SPDLOG_FMT_EXTERNAL$|#define SPDLOG_FMT_EXTERNAL|' /usr/local/include/spdlog/tweakme.h; \
+      grep -qx '#define SPDLOG_FMT_EXTERNAL' /usr/local/include/spdlog/tweakme.h; \
       ldconfig; \
       rm -rf /tmp/eigen /tmp/fmt /tmp/spdlog; \
     fi
